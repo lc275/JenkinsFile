@@ -1,7 +1,48 @@
-你的问题是 "更多" 按钮展开后，点击页面其他地方也能收起菜单。
-现在的代码可能因为 事件冒泡 或 变量作用域问题 导致收起失败。
+为了让 "更多" 下拉菜单的工具名称自适应长度，可以 动态调整宽度，确保不会被截断，同时保证整体样式美观。以下是改进的方案：
 
-完整修正代码
+
+---
+
+1. CSS 修改
+
+#more-tools {
+    display: none;
+    position: absolute;
+    background: #444;
+    top: 100%;
+    left: 0;
+    list-style: none;
+    padding: 5px;
+    margin: 0;
+    border-radius: 5px;
+    min-width: 100px; /* 设置最小宽度，防止太窄 */
+    white-space: nowrap; /* 防止文本换行 */
+}
+
+#more-tools li {
+    margin: 5px 0;
+    padding: 5px 10px;
+}
+
+#more-tools a {
+    display: block;
+    padding: 8px 12px;
+    color: white;
+    text-decoration: none;
+    background: #555;
+    border-radius: 5px;
+}
+
+#more-tools a:hover {
+    background: #666;
+}
+
+
+---
+
+2. JavaScript 修改
+
+添加代码 自动计算最长工具名称的宽度，并调整 #more-tools 的宽度：
 
 async function loadNavbar() {
     // 读取工具列表
@@ -26,6 +67,18 @@ async function loadNavbar() {
         li.innerHTML = `<a href="${tool.url}">${tool.name}</a>`;
         moreToolsContainer.appendChild(li);
     });
+
+    // **自适应下拉菜单宽度**
+    setTimeout(() => {
+        let maxWidth = 100; // 设定最小宽度
+        moreToolsContainer.querySelectorAll("a").forEach(link => {
+            const textWidth = link.offsetWidth + 20; // 计算文本宽度 + 额外间距
+            if (textWidth > maxWidth) {
+                maxWidth = textWidth;
+            }
+        });
+        moreToolsContainer.style.minWidth = `${maxWidth}px`;
+    }, 100);
 
     // 初始隐藏菜单
     moreToolsContainer.style.display = "none";
@@ -64,26 +117,42 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 ---
 
-修正点
+3. 代码优化
 
-1. event.stopPropagation()：防止点击 "更多" 按钮时触发 document.click 事件，从而误收起菜单。
+✅ 关键改进
+
+1. 动态计算最长工具名称的宽度：
+
+计算所有 a 标签的 offsetWidth，找到最大值，作为 #more-tools 的 min-width。
+
+避免工具名称过长导致菜单样式错乱。
 
 
-2. document.addEventListener("click")：判断 点击的是否是 moreDropdown 内部，如果不是，则收起菜单。
+
+2. 防止宽度太窄：
+
+设定 最小宽度 100px，保证即使名字很短也不会太窄。
 
 
-3. 确保 moreToolsContainer.style.display = "none" 作为初始状态，防止页面加载时菜单默认展开。
+
+3. 确保计算生效：
+
+使用 setTimeout(() => {...}, 100);，确保所有 a 标签都渲染完成后再计算宽度。
+
 
 
 
 
 ---
 
-最终效果
+4. 最终效果
 
-✔ 点击 "更多" 按钮 → 菜单展开
-✔ 再次点击 "更多" 按钮 → 菜单收回
-✔ 点击页面其他地方 → 菜单自动收回
+工具名称自适应宽度，不会被裁剪或换行。
 
-这样，"更多" 按钮的展开/收回效果完全符合你的需求了！
+"更多" 按钮展开时，菜单宽度自动调整，适应最长的工具名称。
+
+点击 "更多" 之外的区域时，菜单自动收起。
+
+
+这样你的导航栏会更美观、更符合用户体验！
 
