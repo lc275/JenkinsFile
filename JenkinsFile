@@ -1,76 +1,21 @@
-你可以使用 JavaScript 控制展开和收起，而不是使用 CSS 的 :hover，这样只有点击 "更多" 按钮时，才会展开或收回菜单。下面是改进后的 HTML + CSS + JavaScript 代码：
+你的 more-tools 可能默认就带有 display: none;，但是 classList.toggle("hidden") 只是切换类名，可能没有正确影响 display 属性。
+你可以 直接切换 style.display，或者修正 CSS，确保 .hidden 类能正常生效。
 
 
 ---
 
-1. 更新 HTML & CSS
+1. 修正 CSS
 
-<nav id="tool-navbar">
-    <ul id="main-tools"></ul>
-    <div id="more-dropdown">
-        <button id="more-btn">更多 ▼</button>
-        <ul id="more-tools" class="hidden"></ul>
-    </div>
-</nav>
-
-<style>
-    #tool-navbar {
-        display: flex;
-        background: #333;
-        padding: 10px;
-        align-items: center;
-    }
-    #tool-navbar ul {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        display: flex;
-    }
-    #tool-navbar li {
-        margin-right: 15px;
-    }
-    #tool-navbar a {
-        color: white;
-        text-decoration: none;
-        padding: 8px 12px;
-        background: #444;
-        border-radius: 5px;
-    }
-    #more-dropdown {
-        position: relative;
-    }
-    #more-tools {
-        display: none;
-        position: absolute;
-        background: #444;
-        top: 100%;
-        left: 0;
-        list-style: none;
-        padding: 5px;
-        margin: 0;
-        border-radius: 5px;
-        min-width: 100px;
-    }
-    #more-tools li {
-        margin: 5px 0;
-    }
-    #more-btn {
-        background: #555;
-        color: white;
-        border: none;
-        padding: 8px 12px;
-        cursor: pointer;
-        border-radius: 5px;
-    }
-    .hidden {
-        display: none;
-    }
-</style>
+.hidden {
+    display: none !important; /* 确保隐藏生效 */
+}
 
 
 ---
 
-2. 更新 JavaScript
+2. 修改 JavaScript
+
+直接切换 style.display，保证展开和收回都有效：
 
 async function loadNavbar() {
     // 读取工具列表
@@ -95,15 +40,23 @@ async function loadNavbar() {
         moreToolsContainer.appendChild(li);
     });
 
+    // 初始隐藏菜单
+    moreToolsContainer.style.display = "none";
+
     // 绑定点击事件
-    moreBtn.addEventListener("click", () => {
-        moreToolsContainer.classList.toggle("hidden");
+    moreBtn.addEventListener("click", (event) => {
+        event.stopPropagation(); // 阻止点击冒泡
+        if (moreToolsContainer.style.display === "none") {
+            moreToolsContainer.style.display = "block";
+        } else {
+            moreToolsContainer.style.display = "none";
+        }
     });
 
     // 点击页面其他地方时，自动收起
     document.addEventListener("click", (event) => {
-        if (!moreBtn.contains(event.target) && !moreToolsContainer.contains(event.target)) {
-            moreToolsContainer.classList.add("hidden");
+        if (!moreDropdown.contains(event.target)) {
+            moreToolsContainer.style.display = "none";
         }
     });
 }
@@ -124,17 +77,23 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 ---
 
-3. 交互逻辑
+3. 修正点
 
-1. 点击 "更多" 按钮 → 展开 more-tools（移除 .hidden）。
-
-
-2. 再次点击 "更多" 按钮 → 收起 more-tools（添加 .hidden）。
+1. style.display = "none" 作为初始状态，确保默认隐藏。
 
 
-3. 点击页面其他地方，也会自动收起 more-tools。
+2. 点击 "更多" 按钮时切换 display: block 和 display: none，确保展开/收回正常工作。
+
+
+3. 阻止 click 事件冒泡，否则 document.addEventListener("click") 可能立即关闭菜单。
+
+
+4. 修正 document.addEventListener("click") 的判断条件，确保点击 "更多" 按钮或菜单时不会误关闭。
 
 
 
-这样，"更多" 按钮的展开和收回效果就完全符合你的需求了！
+
+---
+
+这样应该能解决你的问题，试试看！
 
