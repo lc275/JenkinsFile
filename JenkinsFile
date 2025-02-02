@@ -1,21 +1,7 @@
-你的 more-tools 可能默认就带有 display: none;，但是 classList.toggle("hidden") 只是切换类名，可能没有正确影响 display 属性。
-你可以 直接切换 style.display，或者修正 CSS，确保 .hidden 类能正常生效。
+你的问题是 "更多" 按钮展开后，点击页面其他地方也能收起菜单。
+现在的代码可能因为 事件冒泡 或 变量作用域问题 导致收起失败。
 
-
----
-
-1. 修正 CSS
-
-.hidden {
-    display: none !important; /* 确保隐藏生效 */
-}
-
-
----
-
-2. 修改 JavaScript
-
-直接切换 style.display，保证展开和收回都有效：
+完整修正代码
 
 async function loadNavbar() {
     // 读取工具列表
@@ -25,6 +11,7 @@ async function loadNavbar() {
     const mainToolsContainer = document.getElementById("main-tools");
     const moreToolsContainer = document.getElementById("more-tools");
     const moreBtn = document.getElementById("more-btn");
+    const moreDropdown = document.getElementById("more-dropdown");
 
     // 显示前 5 个工具
     tools.slice(0, 5).forEach(tool => {
@@ -43,9 +30,9 @@ async function loadNavbar() {
     // 初始隐藏菜单
     moreToolsContainer.style.display = "none";
 
-    // 绑定点击事件
+    // 绑定点击事件，展开/收回
     moreBtn.addEventListener("click", (event) => {
-        event.stopPropagation(); // 阻止点击冒泡
+        event.stopPropagation(); // 阻止事件冒泡，防止触发 document 监听
         if (moreToolsContainer.style.display === "none") {
             moreToolsContainer.style.display = "block";
         } else {
@@ -77,23 +64,26 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 ---
 
-3. 修正点
+修正点
 
-1. style.display = "none" 作为初始状态，确保默认隐藏。
-
-
-2. 点击 "更多" 按钮时切换 display: block 和 display: none，确保展开/收回正常工作。
+1. event.stopPropagation()：防止点击 "更多" 按钮时触发 document.click 事件，从而误收起菜单。
 
 
-3. 阻止 click 事件冒泡，否则 document.addEventListener("click") 可能立即关闭菜单。
+2. document.addEventListener("click")：判断 点击的是否是 moreDropdown 内部，如果不是，则收起菜单。
 
 
-4. 修正 document.addEventListener("click") 的判断条件，确保点击 "更多" 按钮或菜单时不会误关闭。
+3. 确保 moreToolsContainer.style.display = "none" 作为初始状态，防止页面加载时菜单默认展开。
 
 
 
 
 ---
 
-这样应该能解决你的问题，试试看！
+最终效果
+
+✔ 点击 "更多" 按钮 → 菜单展开
+✔ 再次点击 "更多" 按钮 → 菜单收回
+✔ 点击页面其他地方 → 菜单自动收回
+
+这样，"更多" 按钮的展开/收回效果完全符合你的需求了！
 
