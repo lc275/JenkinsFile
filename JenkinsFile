@@ -1,61 +1,15 @@
-你可以使用 HTML + CSS + JavaScript 来实现这个导航栏，并使用 JavaScript 配置文件 来管理工具列表，使其易于维护和扩展。以下是实现思路和代码示例：
+你可以使用 JavaScript 控制展开和收起，而不是使用 CSS 的 :hover，这样只有点击 "更多" 按钮时，才会展开或收回菜单。下面是改进后的 HTML + CSS + JavaScript 代码：
 
 
 ---
 
-实现方案
-
-1. 工具列表配置：
-
-通过 JavaScript 配置 读取工具列表，前 5 个显示在导航栏，剩余的放入 "更多" 下拉菜单。
-
-
-
-2. 导航栏结构：
-
-使用 nav 标签 + ul 结构实现主要工具。
-
-使用 dropdown 结构放置 "更多" 选项。
-
-
-
-3. 自动嵌入：
-
-通过 JavaScript 动态加载，在所有工具页面 自动插入导航栏。
-
-
-
-
-
----
-
-代码示例
-
-1. 配置工具列表（tools.js）
-
-const tools = [
-    { name: "工具1", url: "tool1.html" },
-    { name: "工具2", url: "tool2.html" },
-    { name: "工具3", url: "tool3.html" },
-    { name: "工具4", url: "tool4.html" },
-    { name: "工具5", url: "tool5.html" },
-    { name: "工具6", url: "tool6.html" },
-    { name: "工具7", url: "tool7.html" },
-    { name: "工具8", url: "tool8.html" }
-];
-
-
----
-
-2. 导航栏 HTML & CSS
-
-（nav.html，供 JavaScript 自动插入到各个页面中）
+1. 更新 HTML & CSS
 
 <nav id="tool-navbar">
     <ul id="main-tools"></ul>
     <div id="more-dropdown">
         <button id="more-btn">更多 ▼</button>
-        <ul id="more-tools"></ul>
+        <ul id="more-tools" class="hidden"></ul>
     </div>
 </nav>
 
@@ -95,6 +49,7 @@ const tools = [
         padding: 5px;
         margin: 0;
         border-radius: 5px;
+        min-width: 100px;
     }
     #more-tools li {
         margin: 5px 0;
@@ -107,15 +62,15 @@ const tools = [
         cursor: pointer;
         border-radius: 5px;
     }
-    #more-dropdown:hover #more-tools {
-        display: block;
+    .hidden {
+        display: none;
     }
 </style>
 
 
 ---
 
-3. JavaScript 动态插入导航栏（navbar.js）
+2. 更新 JavaScript
 
 async function loadNavbar() {
     // 读取工具列表
@@ -124,6 +79,7 @@ async function loadNavbar() {
 
     const mainToolsContainer = document.getElementById("main-tools");
     const moreToolsContainer = document.getElementById("more-tools");
+    const moreBtn = document.getElementById("more-btn");
 
     // 显示前 5 个工具
     tools.slice(0, 5).forEach(tool => {
@@ -137,6 +93,18 @@ async function loadNavbar() {
         const li = document.createElement("li");
         li.innerHTML = `<a href="${tool.url}">${tool.name}</a>`;
         moreToolsContainer.appendChild(li);
+    });
+
+    // 绑定点击事件
+    moreBtn.addEventListener("click", () => {
+        moreToolsContainer.classList.toggle("hidden");
+    });
+
+    // 点击页面其他地方时，自动收起
+    document.addEventListener("click", (event) => {
+        if (!moreBtn.contains(event.target) && !moreToolsContainer.contains(event.target)) {
+            moreToolsContainer.classList.add("hidden");
+        }
     });
 }
 
@@ -156,29 +124,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 ---
 
-4. 在所有工具页面引入
+3. 交互逻辑
 
-在每个工具页面的 <head> 部分添加：
-
-<script src="navbar.js" defer></script>
+1. 点击 "更多" 按钮 → 展开 more-tools（移除 .hidden）。
 
 
----
-
-最终效果
-
-1. 自动插入导航栏 到所有页面。
+2. 再次点击 "更多" 按钮 → 收起 more-tools（添加 .hidden）。
 
 
-2. 前 5 个工具 直接展示。
-
-
-3. "更多" 按钮 展开剩余工具。
-
-
-4. 工具列表可通过 tools.js 轻松修改，适用于后续扩展。
+3. 点击页面其他地方，也会自动收起 more-tools。
 
 
 
-这样，你的导航栏就能自动适配并嵌入所有工具页面了。
+这样，"更多" 按钮的展开和收回效果就完全符合你的需求了！
 
